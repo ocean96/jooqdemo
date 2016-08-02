@@ -9,7 +9,10 @@ import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.SQLDialect;
+import org.jooq.TableField;
 import org.jooq.impl.DSL;
+
+import test.generated.tables.records.AuthorRecord;
 
 public class Main {
 	public static void main(String[] args) {
@@ -22,8 +25,25 @@ public class Main {
 		try (Connection conn = DriverManager.getConnection(url, userName, password)) {
 			// ...
 			DSLContext create = DSL.using(conn, SQLDialect.MYSQL);
-			Result<Record> result = create.select().from(AUTHOR).fetch();
+			Result<Record> result = create.select()
+					.from(AUTHOR)
+					.where(AUTHOR.FIRST_NAME.equal("ocean"))
+					.orderBy(AUTHOR.FIRST_NAME.desc())
+					.fetch();
 			System.out.println("HelloWorld!");
+			for (Record r : result) {
+			    Integer id = r.getValue(AUTHOR.ID);
+			    String firstName = r.getValue(AUTHOR.FIRST_NAME);
+			    String lastName = r.getValue(AUTHOR.LAST_NAME);
+
+			    System.out.println("ID: " + id + " first name: " + firstName + " last name: " + lastName);
+			}
+			
+			create.insertInto(AUTHOR,
+			        AUTHOR.ID, AUTHOR.FIRST_NAME, AUTHOR.LAST_NAME)
+			      .values(100, "Hermann", "Hesse")
+			      .values(101, "Alfred", "Döblin")
+			      .execute();
 		}
 		// For the sake of this tutorial, let's keep exception handling simple
 		catch (Exception e) {
